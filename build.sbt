@@ -1,4 +1,4 @@
-ThisBuild / scalaVersion := "3.3.3"
+ThisBuild / scalaVersion := "3.3.7"
 
 ThisBuild / name := "Functional-Effects"
 

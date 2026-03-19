@@ -138,7 +138,7 @@ final private case class FiberContext[E, A](
       if (stack.isEmpty) loop = false
       else {
         val cont = stack.pop()
-        if (cont.isInstanceOf[ZIO.Fold[Any, Any, Any, Any, Any]]) {
+        if (cont.isInstanceOf[ZIO.Fold[?, ?, ?, ?, ?]]) {
           errorHandler = cont.asInstanceOf[ZIO.Fold[Any, Any, Any, Any, Any]]
           loop = false
         }
@@ -354,9 +354,6 @@ object ZIO {
 
   import scala.reflect.ClassTag
 
-  def service[R](implicit classTag: ClassTag[R]): ZIO[Has[R], Nothing, R] =
-    accessZIO(env => ZIO.succeed(env.get))
-
   def environment[R]: ZIO[R, Nothing, R] =
     accessZIO(env => ZIO.succeed(env))
 
@@ -428,80 +425,13 @@ object Example extends ZIOApp {
 
   import ZIO._
 
-  val intZIO: ZIO[Has[Int], Nothing, Unit] =
-    accessZIO[Has[Int], Nothing, Unit](env => ZIO.succeed(println(env.get)))
+  val intStringZIO = for {
+    int <- ZIO.succeed(42)
+    str <- ZIO.succeed("The answer is:")
 
-  val stringZIO: ZIO[Has[String], Nothing, Unit] =
-    accessZIO[Has[String], Nothing, Unit](env => ZIO.succeed(println(s"Look I'm a ${env.get}")))
-
-  val intStringZIO: ZIO[Has[Int] with Has[String], Nothing, (Unit, Unit)] = intZIO.zip(stringZIO)
-
-  val intEnv: Has[Int]       = Has.succeed(42)
-  val stringEnv: Has[String] = Has.succeed("Hello")
-
-  trait Console {
-    def printLine(message: String): ZIO[Any, Nothing, Unit]
-  }
-
-  object Console {
-
-    val live = Has.succeed(new Console {
-      def printLine(message: String): ZIO[Any, Nothing, Unit] =
-        ZIO.succeed(println(message))
-    })
-
-    val dummy = Has.succeed(new Console {
-      def printLine(message: String): ZIO[Any, Nothing, Unit] =
-        ZIO.succeed(println("WOWIES"))
-    })
-
-  }
-
-  val myEnv: Has[String] with Has[Int] = intEnv ++ stringEnv
+  } yield (int, str)
 
   def run = intStringZIO
-    .zip(ZIO.service[Console].flatMap(_.printLine("MY SPECIAL MESSAGE")))
-    .provide(myEnv ++ Console.dummy)
-
-}
-
-object HasExample extends App {
-
-  val intEnv: Has[Int]       = Has.succeed(42)
-  val stringEnv: Has[String] = Has.succeed("Hello")
-  val boolEnv: Has[Boolean]  = Has.succeed(true)
-
-  val myEnv: Has[Int] with Has[String] with Has[Boolean] = intEnv ++ stringEnv ++ boolEnv
-
-  println(myEnv)
-  println(myEnv.get[Int])
-  println(myEnv.get[String])
-  println(myEnv.get[Boolean])
-
-  // println(myEnv.get[Double])
-  // ~ runMain zio.HasExample
-}
-
-// Type -> Implementation
-
-final case class Has[A](map: Map[String, Any]) {}
-
-import scala.reflect.ClassTag
-
-object Has {
-
-  implicit class HasOps[Self <: Has[_]](self: Self) {
-
-    def get[A](implicit ev: Self <:< Has[A], classTag: ClassTag[A]): A =
-      self.map(classTag.toString).asInstanceOf[A]
-
-    def ++[That <: Has[_]](that: That): Self with That =
-      Has(self.map ++ that.map).asInstanceOf[Self with That]
-
-  }
-
-  def succeed[A](value: A)(implicit classTag: ClassTag[A]): Has[A] =
-    Has(Map(classTag.toString -> value))
 
 }
 

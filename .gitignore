@@ -32,3 +32,8 @@ web/.DS_Store
 .bloop/
 .vscode/
 .metals/
+
+.scala-build/
+/project/project/
+/project/target/
+/project/.bloop
