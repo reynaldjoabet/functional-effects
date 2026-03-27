@@ -197,3 +197,15 @@ atomicInt.compareAndSet(4, 6) // false (value was not 4, so no change)
 
 val executor = java.util.concurrent.Executors.newWorkStealingPool(4)
 executor.submit((() => println("Hello from the thread pool!")): Runnable)
+
+import scala.runtime.IntRef
+
+def makeCounter(): () => Int = {
+  val counter = new IntRef(0) // mutable reference to an integer
+  () => { counter.elem += 1; counter.elem } // returns a function that increments and returns the counter
+}
+
+val counter = makeCounter()
+counter() // 1
+counter() // 2
+counter() // 3

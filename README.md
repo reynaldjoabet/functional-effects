@@ -2116,3 +2116,52 @@ for {
 } yield ()
 ```
 
+## Closure
+A closure is a function that captures and retains access to variables from its enclosing lexical scope, even after that scope has finished executing.
+```scala
+def makeCounter(): () => Int = {
+  var count = 0
+  () => { count += 1; count }  // closes over `count`
+}
+
+val counter = makeCounter()
+counter() // 1
+counter() // 2
+```
+Here, the anonymous function `() => { count += 1; count }` is a closure — it "closes over" the variable `count` from `makeCounter`'s scope and continues to access and mutate it after `makeCounter` has returned.
+
+Key points:
+- The captured variables are live references, not copies (mutations are visible).
+- Closures are fundamental to functional programming, callbacks, and higher-order functions.
+- In Scala/JVM, the compiler lifts captured variables into a shared object on the heap so they outlive the stack frame
+
+If `count` stayed on the stack, the closure would hold a dangling pointer to deallocated memory — a use-after-free bug.
+
+The compiler detects this. When it sees that a local variable is captured by a closure that can outlive the enclosing scope, it "lifts" (hoists) that variable to a heap-allocated object. On the JVM, this typically means wrapping it in a small object (e.g., scala.runtime.IntRef for a mutable Int):
+```scala
+class IntRef(var elem: Int) // heap object to hold the captured variable
+def makeCounter(): () => Int = {
+  val countRef = new IntRef(0) // lifted to heap
+  () => { countRef.elem += 1; countRef.elem } // closure captures countRef
+}
+```
+This way, the closure holds a reference to `countRef`, which is on the heap and remains valid as long as the closure exists. The original `count` variable on the stack is effectively replaced by `countRef.elem` on the heap. This is how Scala ensures that closures can safely capture mutable state without risking memory safety issues.
+
+The stack is fast but has a strict lifetime (tied to the function call). The heap is needed whenever data must outlive the function that created it — and closures are a classic case of that
+`val` means the reference is immutable — you can't reassign `countRef` to point to a different object. `But the object it points to is mutable`
+
+`val` of an immutable type — fully safe:
+```scala
+val x = 42              // Int is immutable
+val name = "hello"      // String is immutable
+val list = List(1,2,3)  // List is immutable
+```
+These can be freely shared across threads. No thread can ever change the value, so no race condition is possible.
+
+`val` of a mutable type — NOT safe:
+```scala
+val buffer = mutable.ListBuffer(1, 2, 3)  // mutable contents!
+val countRef = new IntRef(0)               // mutable contents!
+val map = new java.util.HashMap[String, Int]()
+```
+The `val` only prevents reassigning the reference. Any thread can still mutate the contents
