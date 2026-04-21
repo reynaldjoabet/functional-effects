@@ -2165,3 +2165,8 @@ val countRef = new IntRef(0)               // mutable contents!
 val map = new java.util.HashMap[String, Int]()
 ```
 The `val` only prevents reassigning the reference. Any thread can still mutate the contents
+
+## Go Goroutines
+
+
+## Kotlin Coroutines

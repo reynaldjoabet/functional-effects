@@ -1,14 +1,14 @@
-ThisBuild / scalaVersion := "3.3.7"
+scalaVersion := "3.3.7"
 
-ThisBuild / name := "Functional-Effects"
+version := "1.0"
 
-ThisBuild / version := "1.0"
+LocalRootProject / name := "Functional-Effects"
 
-lazy val root = project in file(".")
+lazy val root = project.in(file("."))
 
-lazy val zio = project in file("./zio")
+lazy val zio = project.in(file("./zio"))
 
-ThisBuild / scalacOptions ++= Seq(
+scalacOptions ++= Seq(
   "-encoding",
   "UTF-8",
   "-deprecation",
