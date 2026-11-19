@@ -42,6 +42,11 @@ sealed trait IO[+A] {
 
 object IO {
 
+  // Unconditional: `derives CanEqual` would require CanEqual[A, B] on the type
+  // arguments, which can't be found when matching `case Yield` against an IO[B]
+  // with B abstract.
+  given CanEqual[IO[?], IO[?]] = CanEqual.derived
+
   def apply[A](a: => A): IO[A]                      = delay(a)
   def unit: IO[Unit]                                = pure(())
   def none[A]: IO[Option[A]]                        = pure(None)
