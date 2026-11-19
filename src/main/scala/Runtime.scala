@@ -67,13 +67,13 @@ object Runtime {
 
     def eval[B](io: IO[B])(cb: (Try[B]) => Unit): Unit = executor {
       io match {
-        case Pure(a) => cb(Success(a))
+        case Pure(a)    => cb(Success(a))
         case Suspend(t) =>
           eval(t()) {
             case Failure(exception) => cb(Failure(exception))
             case Success(value)     => cb(Success(value))
           }
-        case Fork(tio: IO[Any]) => cb(Success(new RuntimeFiber(tio).start()))
+        case Fork(tio: IO[Any])        => cb(Success(new RuntimeFiber(tio).start()))
         case FlatMap(self: IO[Any], f) =>
           eval(self) {
             case Failure(exception) => cb(Failure(exception))

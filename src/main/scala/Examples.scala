@@ -35,7 +35,9 @@ object Examples {
     _ <- sleep(4.seconds)
     _ <-
       IO.delay(
-        println(s"[${System.currentTimeMillis()}] running second effect on ${Thread.currentThread.getName}")
+        println(
+          s"[${System.currentTimeMillis()}] running second effect on ${Thread.currentThread.getName}"
+        )
       )
   } yield ()
 

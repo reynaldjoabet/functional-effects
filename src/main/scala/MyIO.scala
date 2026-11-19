@@ -298,7 +298,7 @@ object MyApp extends IOApp {
     // An asynchronous task that uses our non-blocking sleep.
     val asyncTask = for {
       _ <- IO.delay(println("[AsyncTask] Starting a 8 second delay..."))
-      _ <- Clock.sleep(8 seconds)
+      _ <- Clock.sleep(8.seconds)
       _ <- IO.delay(println("[AsyncTask] Finished the 8 second delay."))
     } yield ()
 
@@ -348,8 +348,9 @@ object YieldExample extends IOApp {
 
 object NeverExample extends IOApp {
 
-  val never: IO[Unit] = IO.delay(println("Starting never...")) *> IO.never *> IO
-    .delay(println("This will never be printed."))
+  val never: IO[Unit] = IO.delay(println("Starting never...")) *> IO.never *> IO.delay(
+    println("This will never be printed.")
+  )
 
   def run = never
 
@@ -444,8 +445,8 @@ object AsyncExample extends IOApp {
   }
 
   // Our program will be:
-  val program = simpleAsyncIO
-    .map(s => println(s"[${Thread.currentThread().getName}] Main Program Result: $s"))
+  val program =
+    simpleAsyncIO.map(s => println(s"[${Thread.currentThread().getName}] Main Program Result: $s"))
 
   override def run: IO[Any] = program
 
